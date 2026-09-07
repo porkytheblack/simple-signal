@@ -2,7 +2,7 @@
 
 > Type-safe background jobs, recurring schedules, distributed Station Networks, long-running beacons, and DAG workflows for TypeScript.
 
-Station 2.2.0 is a modular TypeScript framework. StationKit is the main entry point; signals are isolated background jobs, broadcasts are DAG workflows, beacons are supervised long-running processes, schedules provide interval and timezone-aware cron execution, and Station Networks coordinate work across a Headquarters and worker stations. Prefer the Markdown links below when supplying documentation to an agent.
+Station 2.2.1 is a modular TypeScript framework. StationKit is the main entry point; signals are isolated background jobs, broadcasts are DAG workflows, beacons are supervised long-running processes, schedules provide interval and timezone-aware cron execution, and Station Networks coordinate work across a Headquarters and worker stations. Prefer the Markdown links below when supplying documentation to an agent.
 
 ## Start here
 
