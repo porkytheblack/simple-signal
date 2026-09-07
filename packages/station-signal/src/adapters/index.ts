@@ -9,6 +9,24 @@ import type {
   StepPatch,
 } from "../types.js";
 
+/** Narrows a due-run query to work the asking runner could dispatch. */
+export interface RunDueFilter {
+  /**
+   * Only these signals. The runner passes the ones it has registered, whose
+   * placement labels it satisfies, and that are under their concurrency
+   * ceiling — so an empty list means there is nothing worth asking for.
+   */
+  readonly signalNames?: readonly string[];
+}
+
+/** Narrows a running-run query. */
+export interface RunRunningFilter {
+  /** Only runs claimed by this station. */
+  readonly stationId?: string;
+  /** Upper bound on rows returned. */
+  readonly limit?: number;
+}
+
 export interface SignalQueueAdapter {
   // Run methods
   addRun(run: Run): Promise<void>;
@@ -17,9 +35,18 @@ export interface SignalQueueAdapter {
    * Runs ready to dispatch (pending, next_run_at due), oldest first.
    * `limit` bounds the batch — the runner only dispatches a bounded number
    * per tick, so fetching the whole backlog every poll is wasted work.
+   *
+   * `filter` narrows to work this runner could actually take. It is a hint,
+   * not a contract: the runner re-checks everything client-side, so an adapter
+   * may ignore it and stay correct. Honouring it is what stops a partitioned
+   * fleet from reading — and discarding — each other's work on every poll.
    */
-  getRunsDue(limit?: number): Promise<Run[]>;
-  getRunsRunning(): Promise<Run[]>;
+  getRunsDue(limit?: number, filter?: RunDueFilter): Promise<Run[]>;
+  /**
+   * Runs currently marked running. `filter.stationId` narrows to one station's
+   * own work, which is all the timeout sweep uses; the same hint rule applies.
+   */
+  getRunsRunning(filter?: RunRunningFilter): Promise<Run[]>;
   getRun(id: string): Promise<Run | null>;
   updateRun(id: string, patch: RunPatch): Promise<void>;
   /**
@@ -107,3 +134,13 @@ export function isSerializableAdapter(
 
 export { MemoryAdapter } from "./memory.js";
 export { registerAdapter, createAdapter, hasAdapter } from "./registry.js";
+
+export {
+  adapterConformanceCases,
+  describeAdapterSafety,
+  inspectAdapter,
+  multiStationRisks,
+  type AdapterCapabilities,
+  type ConformanceCase,
+  type ConformanceOptions,
+} from "./conformance.js";

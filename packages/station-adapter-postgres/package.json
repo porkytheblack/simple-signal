@@ -42,7 +42,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "license": "MIT",
   "type": "module",
@@ -53,7 +54,9 @@
     "pg": "^8.13.1"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.11"
+    "@types/pg": "^8.11.11",
+    "station-signal": "workspace:*",
+    "tsx": "^4.21.0"
   },
   "peerDependencies": {
     "station-signal": "workspace:*",

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 export type { Pool as PgPool } from "pg";
-import type { SerializableAdapter, AdapterManifest, Run, RunClaim, RunPatch, RunStatus, Step, StepPatch, ListRunsOptions, ListAllRunsOptions } from "station-signal";
+import type { SerializableAdapter, AdapterManifest, Run, RunClaim, RunDueFilter, RunPatch, RunRunningFilter, RunStatus, Step, StepPatch, ListRunsOptions, ListAllRunsOptions } from "station-signal";
 import { registerAdapter } from "station-signal";
 
 const MODULE_URL = import.meta.url;
@@ -217,15 +217,23 @@ export class PostgresAdapter implements SerializableAdapter {
     );
   }
 
-  async getRunsDue(limit?: number): Promise<Run[]> {
+  async getRunsDue(limit?: number, filter?: RunDueFilter): Promise<Run[]> {
     await this.ready();
     const now = new Date();
     const values: unknown[] = [now];
     let sql =
       `SELECT * FROM ${this.tableName}
        WHERE status = 'pending'
-         AND (next_run_at IS NULL OR next_run_at <= $1)
-       ORDER BY created_at ASC`;
+         AND (next_run_at IS NULL OR next_run_at <= $1)`;
+    // Narrowing here rather than in the runner is the whole point: without it
+    // every station reads the same head of the queue and throws away whatever
+    // belongs to a differently-labelled peer.
+    if (filter?.signalNames) {
+      if (filter.signalNames.length === 0) return [];
+      values.push([...filter.signalNames]);
+      sql += ` AND signal_name = ANY($${values.length}::text[])`;
+    }
+    sql += " ORDER BY created_at ASC";
     if (limit !== undefined && limit >= 0) {
       values.push(limit);
       sql += ` LIMIT $${values.length}`;
@@ -234,11 +242,21 @@ export class PostgresAdapter implements SerializableAdapter {
     return result.rows.map(rowToRun);
   }
 
-  async getRunsRunning(): Promise<Run[]> {
+  async getRunsRunning(filter?: RunRunningFilter): Promise<Run[]> {
     await this.ready();
-    const result = await this.pool.query(
-      `SELECT * FROM ${this.tableName} WHERE status = 'running'`,
-    );
+    const values: unknown[] = [];
+    let sql = `SELECT * FROM ${this.tableName} WHERE status = 'running'`;
+    // The timeout sweep only ever acts on its own station's runs, so an
+    // unfiltered scan grows with the fleet for no reason.
+    if (filter?.stationId !== undefined) {
+      values.push(filter.stationId);
+      sql += ` AND station_id = $${values.length}`;
+    }
+    if (filter?.limit !== undefined && filter.limit >= 0) {
+      values.push(filter.limit);
+      sql += ` LIMIT $${values.length}`;
+    }
+    const result = await this.pool.query(sql, values);
     return result.rows.map(rowToRun);
   }
 

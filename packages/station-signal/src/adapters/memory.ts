@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { SignalQueueAdapter } from "./index.js";
+import type { RunDueFilter, RunRunningFilter, SignalQueueAdapter } from "./index.js";
 import type {
   ListAllRunsOptions,
   ListRunsOptions,
@@ -65,11 +65,13 @@ export class MemoryAdapter implements SignalQueueAdapter {
     await this.removeSteps(id);
   }
 
-  async getRunsDue(limit?: number): Promise<Run[]> {
+  async getRunsDue(limit?: number, filter?: RunDueFilter): Promise<Run[]> {
     const now = new Date();
+    const wanted = filter?.signalNames ? new Set(filter.signalNames) : null;
     const due = Array.from(this.runs.values())
       .filter((run) => {
         if (run.status !== "pending") return false;
+        if (wanted && !wanted.has(run.signalName)) return false;
         if (!run.nextRunAt) return true;
         return run.nextRunAt <= now;
       })
@@ -77,10 +79,15 @@ export class MemoryAdapter implements SignalQueueAdapter {
     return limit !== undefined && limit >= 0 ? due.slice(0, limit) : due;
   }
 
-  async getRunsRunning(): Promise<Run[]> {
-    return Array.from(this.runs.values()).filter(
-      (run) => run.status === "running",
+  async getRunsRunning(filter?: RunRunningFilter): Promise<Run[]> {
+    const running = Array.from(this.runs.values()).filter(
+      (run) =>
+        run.status === "running" &&
+        (filter?.stationId === undefined || run.stationId === filter.stationId),
     );
+    return filter?.limit !== undefined && filter.limit >= 0
+      ? running.slice(0, filter.limit)
+      : running;
   }
 
   async getRun(id: string): Promise<Run | null> {

@@ -4,6 +4,7 @@ import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isSerializableAdapter, type SignalQueueAdapter } from "./adapters/index.js";
+import { inspectAdapter, multiStationRisks } from "./adapters/conformance.js";
 import { MemoryAdapter } from "./adapters/memory.js";
 import { configure, onLocalEnqueue } from "./config.js";
 import { parseInterval } from "./interval.js";
@@ -532,7 +533,60 @@ export class SignalRunner {
   async initialize(): Promise<void> {
     if (this.initialized) return;
     if (this.signalsDir) await this.discover(resolve(this.signalsDir));
+    this.warnIfAdapterCannotShare();
     this.initialized = true;
+  }
+
+  /**
+   * Say something when this runner is wired for a fleet but its adapter cannot
+   * safely be in one.
+   *
+   * The optional half of `SignalQueueAdapter` is what makes multi-station
+   * execution correct, and omitting it is otherwise silent — the adapter
+   * typechecks, a single runner behaves, and duplicates only appear once a
+   * second runner shares the queue. Gated on `networkCoordinator` because that
+   * is unambiguous evidence of intent: a deliberately single-runner deployment
+   * never sets one and never sees this.
+   *
+   * A warning, never a throw. Whether to run distributed is the caller's call.
+   */
+  private warnIfAdapterCannotShare(): void {
+    if (!this.networkCoordinator) return;
+    const risks = multiStationRisks(inspectAdapter(this.adapter));
+    if (risks.length === 0) return;
+    console.warn(
+      `[station-signal] Station "${this.stationId}" joined network ` +
+        `"${this.networkId}" with an adapter that is not safe to share:\n` +
+        risks.map((risk) => `  - ${risk}`).join("\n") +
+        "\n  Run adapterConformanceCases() against this adapter to see what is missing.",
+    );
+  }
+
+  /**
+   * Signals this runner could dispatch right now: registered here, placement
+   * satisfied by this station's labels, and under their concurrency ceiling.
+   *
+   * Placement and concurrency were always enforced — the loop below still does
+   * it — but only after the rows had been fetched. Deciding first turns them
+   * into something the adapter can use.
+   */
+  private eligibleSignalNames(): string[] {
+    const names: string[] = [];
+    for (const [name, sig] of this.registry) {
+      const requiredLabels = sig.signal?.placement?.labels;
+      if (
+        requiredLabels &&
+        !Object.entries(requiredLabels).every(([key, value]) => this.stationLabels[key] === value)
+      ) {
+        continue;
+      }
+      if (sig.maxConcurrency !== undefined) {
+        const active = this.activePerSignal.get(name) ?? 0;
+        if (active >= sig.maxConcurrency) continue;
+      }
+      names.push(name);
+    }
+    return names;
   }
 
   /**
@@ -752,7 +806,21 @@ export class SignalRunner {
     // due runs get skipped (per-signal concurrency, retry back-off), so fetch
     // a generous multiple rather than the whole (potentially huge) backlog.
     const dueBatch = Math.max(this.maxConcurrent * 5, 100);
-    const due = await this.adapter.getRunsDue(dueBatch);
+    // Ask only for work this runner could actually take. Every one of these
+    // conditions is re-checked below — an adapter may ignore the filter and
+    // stay correct — but honouring it is what stops a partitioned fleet from
+    // reading and discarding each other's work on every poll.
+    //
+    // Only when `failUnknownSignals` is false, which is exactly the fleet case.
+    // A runner that fails unknown signals is claiming to be the only one that
+    // could run them, so it has to keep seeing them in order to reap them —
+    // narrowing the query there would leave those runs pending forever.
+    const eligible = this.failUnknownSignals ? undefined : this.eligibleSignalNames();
+    if (eligible && eligible.length === 0) return this.childByRunId.size > 0;
+    const due = await this.adapter.getRunsDue(
+      dueBatch,
+      eligible ? { signalNames: eligible } : undefined,
+    );
     for (const run of due) {
       if (this.activeCount >= this.maxConcurrent) break;
 
@@ -1003,7 +1071,9 @@ export class SignalRunner {
     }
     this.lastRunningSweepAt = now;
 
-    const running = await this.adapter.getRunsRunning();
+    // The loop below discards every run owned by another station, so ask for
+    // this one's only.
+    const running = await this.adapter.getRunsRunning({ stationId: this.stationId });
 
     for (const run of running) {
       if (run.stationId && run.stationId !== this.stationId) continue;
