@@ -1,6 +1,6 @@
 {
   "name": "station-network",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Station Network membership, capacity, and controller leases",
   "license": "MIT",
   "main": "dist/index.js",
