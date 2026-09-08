@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "#broadcast-crypto";
 import type { BroadcastQueueAdapter, ListBroadcastRunsOptions } from "./index.js";
 import type {
   BroadcastRun,

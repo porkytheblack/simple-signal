@@ -89,6 +89,14 @@ await sendEmail.trigger({
 
 ## Documentation
 
+### Browser prototype
+
+Run `pnpm dev:browser` to try signals, broadcast DAGs, and supervised beacons in
+Web Workers and service workers with IndexedDB persistence and recovery. See
+[`station-browser`](./packages/station-browser) and the
+[browser lab](./examples/17-browser). This experimental runtime runs local jobs;
+closed-page execution depends on browser wake events.
+
 [station-docs](https://github.com/porkytheblack/station) — Getting started, API reference, examples.
 
 ## Claude Code skill

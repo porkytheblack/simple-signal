@@ -308,6 +308,16 @@ importers:
         specifier: ^4.21.0
         version: 4.21.0
 
+  examples/17-browser:
+    dependencies:
+      station-browser:
+        specifier: workspace:*
+        version: link:../../packages/station-browser
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.12
+        version: 0.25.12
+
   packages/station-adapter-mysql:
     dependencies:
       mysql2:
@@ -442,6 +452,18 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/station-browser:
+    dependencies:
+      station-beacon:
+        specifier: workspace:*
+        version: link:../station-beacon
+      station-broadcast:
+        specifier: workspace:*
+        version: link:../station-broadcast
+      station-signal:
+        specifier: workspace:*
+        version: link:../station-signal
 
   packages/station-env:
     devDependencies:

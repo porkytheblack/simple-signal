@@ -45,6 +45,7 @@ export function configure(options: ConfigureOptions): void {
 /** Auto-configure from environment variables on first access. */
 function autoConfigureFromEnv(): void {
   if (_configured) return;
+  if (typeof process === "undefined") return;
   const endpoint = process.env.STATION_ENDPOINT;
   const apiKey = process.env.STATION_API_KEY;
   if (endpoint) {
