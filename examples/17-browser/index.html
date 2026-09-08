@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Station / Browser lab</title><link rel="stylesheet" href="./style.css"></head>
+<body><main>
+  <header><a class="brand" href="./"><span class="mark">▥</span> station<span class="edition">BROWSER LAB</span></a><span id="connection" class="connection">Device online</span></header>
+  <section class="intro"><p class="eyebrow">LOCAL EXECUTION / EXPERIMENT 17</p><h1>A station.<br>Right here.</h1><p class="lede">Queue a job. Close the loop. Your browser saves the progress, even when you reload.</p></section>
+  <div class="workspace">
+    <section class="controls" aria-label="Queue controls"><div class="section-title"><h2>Put it to work</h2><span>ON THIS DEVICE</span></div>
+      <label for="text">Text to process</label><textarea id="text" rows="5">Station runs this workflow entirely on your device. Each completed step is saved, so an interrupted job can pick up where it left off.</textarea>
+      <button id="queue" class="primary">Queue a local report <span aria-hidden="true">↗</span></button>
+      <button id="retry" class="secondary">Try a temporary failure</button>
+      <div class="workload-controls"><h3>Broadcast · branching workflow</h3><button id="broadcast" class="secondary">Run text analysis</button><label class="checkbox"><input id="fail-branch" type="checkbox"> Simulate one branch failing</label><p class="hint">Two counts run concurrently, join into a report, then highlight text with 12+ words.</p></div>
+      <div class="workload-controls"><h3>Beacons · supervised clients</h3><div class="button-pair"><button id="beacon-start">Start pulse</button><button id="beacon-crash">Start recovering client</button></div><p class="hint">Watch heartbeats and restart after a disconnect. Stop each beacon from its activity card.</p></div>
+      <div class="execution"><label for="mode">Execution</label><select id="mode"><option value="worker">Web Worker</option><option value="service" disabled>Service worker</option></select><p id="sw-status" class="hint">Preparing offline support…</p><div class="button-pair"><button id="pause">Interrupt worker</button><button id="reload">Reload page</button></div></div>
+      <p id="notice" role="status">Queue a report, then interrupt it after a step is saved. Resume to watch it recover.</p>
+      <p class="footnote">This prototype stores data in this browser. Background execution is opportunistic; it does not guarantee work continues after you close the app.</p>
+    </section>
+    <section class="activity" aria-label="Local runs"><div class="section-title"><h2>Local activity</h2><span class="live">● PERSISTED IN BROWSER</span></div><div id="beacons"></div><div id="broadcasts"></div><div class="section-title signal-heading"><h2>Signals</h2><span>INCLUDING BROADCAST NODES</span></div><div class="counters"><div><strong id="total">0</strong><span>queued</span></div><div><strong id="completed">0</strong><span>completed</span></div><div><strong id="checkpoints">0</strong><span>saved steps</span></div></div><div id="empty"><span class="empty-mark">▥</span><h3>Your queue is ready.</h3><p>Run a report to watch its steps appear here.</p></div><div id="runs"></div></section>
+  </div><footer><span>STATION / TYPE-SAFE BACKGROUND WORK</span><a href="./tests.html">Run browser checks ↗</a></footer>
+</main><script type="module" src="./app.js"></script></body></html>

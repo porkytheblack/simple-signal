@@ -23,6 +23,13 @@ export default function BeaconsPage() {
         <strong>desired state</strong>{" "}
         (running / stopped) you can flip at runtime.
       </p>
+      <p>
+        This reference describes the Node runtime. The shared builder also works
+        with the <Link href="/docs/browser">experimental browser runtime</Link>.
+        Read that guide for supported methods, explicit registration, IndexedDB
+        recovery, and cooperative worker execution; Node runner guarantees and
+        APIs do not apply in the browser.
+      </p>
 
       {/* ── beacon(name) ── */}
 

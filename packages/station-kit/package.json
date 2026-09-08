@@ -1,6 +1,6 @@
 {
   "name": "station-kit",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Dashboard for station-signal — inspect and control signals and broadcasts",
   "license": "MIT",
   "type": "module",

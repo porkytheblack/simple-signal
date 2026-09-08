@@ -1,14 +1,23 @@
 ---
 name: station
-description: Build, scale, test, or operate TypeScript background work with Station. Use for station-kit configuration, signals, broadcasts, beacons, runtime schedules, Station Networks and Headquarters, fleet concurrency and placement, SQLite/PostgreSQL/MySQL/Redis adapters, the dashboard and v1 API, environment variables, subscribers, deployment, or Station troubleshooting.
+description: Build, scale, test, or operate TypeScript background work with Station. Use for station-kit configuration, signals, broadcasts, beacons, runtime schedules, Station Networks and Headquarters, fleet concurrency and placement, SQLite/PostgreSQL/MySQL/Redis adapters, the dashboard and v1 API, browser-local signals/workflows/beacons in Web Workers or service workers, environment variables, subscribers, deployment, or Station troubleshooting.
 ---
 
 # Build with Station
 
-Use `station-kit` as the application entry point. Create a `station.config.ts`
+Choose the runtime first. For browser-local execution, read [browser.md](browser.md)
+and use `BrowserStation` from `station-browser` with explicit registries and
+IndexedDB. It is experimental and included in the Station 2.3.0 release. Do not
+create a Node server, native companion, or Station Network for browser-only work.
+Do not promise continuous polling after a PWA closes.
+
+For Node applications, use `station-kit` as the application entry point. Create a `station.config.ts`
 with `defineConfig`, export definitions from the configured directories, and run
 the application with `npx station`. Construct runners directly only for an
 embedded/headless runtime or a focused test that cannot use `station-kit`.
+
+The workflow and Node runner examples below apply to server and desktop work.
+Browser builds follow the host setup and supported subset in [browser.md](browser.md).
 
 ## Follow this workflow
 
@@ -269,6 +278,9 @@ Measure the intended production adapter and workload before sizing a fleet.
 
 ## Read the focused references
 
+- Read [browser.md](browser.md) first for browser-local applications: shared
+  registries, Web Worker/service-worker hosts, cooperative execution, API usage,
+  versioning, and beacon configuration and start modes.
 - Read [api-reference.md](api-reference.md) for exact types, methods, adapters,
   v1 endpoints, and package exports. Station Networks are in §15.
 - Read [examples.md](examples.md) for complete applications and deployment

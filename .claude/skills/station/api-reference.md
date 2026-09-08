@@ -2,7 +2,12 @@
 
 Complete reference for all Station packages. Every export, type, interface, and method signature.
 
-> **Before you wire anything: `station-kit` is Station's entry point by design.**
+> **Choose the runtime first.** Browser-local execution uses the experimental
+> `station-browser` package; read [browser.md](browser.md) for its host setup and
+> supported subset. Node runners, directory discovery, server adapters, and fleet
+> APIs below are not browser APIs.
+>
+> **For Node applications: `station-kit` is Station's entry point by design.**
 > An ordinary app is a `station.config.ts` calling `defineConfig` (§7), run with
 > `npx station`. That single call wires the signal / broadcast / beacon runners
 > and their shutdown ordering, the HTTP server, the dashboard, the authenticated
@@ -33,7 +38,8 @@ Complete reference for all Station packages. Every export, type, interface, and 
 13. [station-beacon](#13-station-beacon)
 14. [station-env](#14-station-env)
 15. [station-network](#15-station-network)
-16. [Quick Reference: Import Patterns](#quick-reference-import-patterns)
+16. [station-browser](#16-station-browser-experimental)
+17. [Quick Reference: Import Patterns](#quick-reference-import-patterns)
 
 ---
 
@@ -2824,6 +2830,62 @@ the owning station endpoint directly for WebSockets.
 - A scheduled timestamp is eligibility time, not a hard real-time start SLA.
   Atomic occurrence claims prevent duplicate fires; queue and run leases
   prevent duplicate ownership.
+
+---
+
+## 16. station-browser (experimental)
+
+Use `BrowserStation`, not the Node runners above, for execution inside a web app.
+Read [browser.md](browser.md) for complete registry/page/worker examples, package
+availability, beacon configuration behavior, and recovery constraints.
+
+```ts
+import {
+  BrowserStation, IndexedDBStore, BrowserBroadcasts, BrowserBeacons,
+  signal, broadcast, beacon, z, configure, sleepOrAbort,
+  type BrowserRun, type Checkpoint, type BrowserBroadcastRun,
+  type BrowserBroadcastNode, type BrowserBeaconInstance,
+  type BeaconContext, type AnyBeacon, type Signal, type BroadcastDefinition,
+} from "station-browser";
+import type { BrowserStationOptions } from "station-browser";
+```
+
+`BrowserStationOptions` accepts optional `signals`, `broadcasts`, `beacons`,
+`database`, `stationId`, `definitionVersion`, and positive integer `concurrency`.
+Defaults: empty definition arrays, database `station-browser`, generated station
+ID, definition version `"1"`, and four concurrent async signal attempts.
+
+| API | Result and semantics |
+|---|---|
+| `station.trigger(definitionOrName, input)` | `Promise<string>` signal run ID; validates input and enqueues |
+| `station.triggerBroadcast(name, input)` | `Promise<string>` broadcast ID; root signal validation occurs during coordination |
+| `station.drain({ maxJobs?, budgetMs? })` | `Promise<number>` claimed attempts; defaults 10 / 20,000 ms, budget limits new claims |
+| `station.wake({ maxJobs?, budgetMs?, beaconSliceMs? })` | `Promise<void>` jobs plus beacon supervision; default slice 1,500 ms |
+| `station.store.get(id)` | `Promise<BrowserRun \| undefined>` |
+| `station.store.list()` | `Promise<BrowserRun[]>` |
+| `station.store.cancel(id)` | `Promise<boolean>`; fences active writes |
+| `station.store.close()` | `Promise<void>`; settle host work before closing |
+| `station.broadcasts.trigger(name, input)` | `Promise<string>`; same as station.triggerBroadcast |
+| `station.broadcasts.list()` | `Promise<BrowserBroadcastRun[]>`; find a workflow by ID in this list |
+| `station.broadcasts.cancel(id)` | `Promise<void>`; cancels parent and fences child jobs |
+| `station.broadcasts.advance()` | `Promise<void>`; coordinator called automatically by drain |
+| `station.beacons.start(name, { instanceId?, config? })` | `Promise<string>` instance ID; persists desired running |
+| `station.beacons.list()` | `Promise<BrowserBeaconInstance[]>` |
+| `station.beacons.stop(instanceId)` | `Promise<void>`; persists desired stopped |
+| `station.beacons.tick()` | `Promise<void>`; host supervision and lease renewal |
+| `station.beacons.runSlice(ms?)` | `Promise<void>`; default 1,500 ms then suspension/cleanup |
+| `station.beacons.suspend()` | `Promise<void>`; preserve desired running, clean up this host's handlers |
+
+Inputs, outputs, checkpoint outputs, and beacon configs are JSON strings in stored
+records. Parse defined values. Signal/broadcast timestamps use Dates; beacon
+lifecycle/log timestamps use epoch milliseconds. These records are origin-local
+IndexedDB data, not server queue adapters or network membership.
+
+Signals reject recurring schedules, env, placement, per-signal concurrency, and
+onComplete. Broadcasts reject recurring definitions and do not expose dynamic
+workflow storage/editing. Beacons cannot expose listening ports or inject env /
+placement. Browser supervision is cooperative; service-worker beacons suspend
+between wakes. No method guarantees continuous execution after app/browser exit.
 
 ---
 

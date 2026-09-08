@@ -2,7 +2,7 @@ export const site = {
   name: "Station",
   origin: "https://station.dterminal.net",
   summary:
-    "Type-safe background jobs, recurring schedules, distributed Station Networks, long-running beacons, and DAG workflows for TypeScript.",
+    "Type-safe background jobs, recurring schedules, distributed Station Networks, long-running beacons, DAG workflows, and experimental browser execution for TypeScript.",
 };
 
 export const pageGroups = [
@@ -10,6 +10,7 @@ export const pageGroups = [
     heading: "Start here",
     pages: [
       { route: "/docs/getting-started", title: "Getting started", description: "Install Station, define and run a signal, add persistence, and prepare a production configuration." },
+      { route: "/docs/browser", title: "Browser runtime (experimental)", description: "Build signals, DAGs, and beacons in Web Workers or service workers with IndexedDB, explicit wake handling, recovery, and browser execution limits. Includes beacon configuration and start-mode behavior." },
       { route: "/docs/dashboard", title: "Dashboard guide", description: "Operate the StationKit dashboard, inspect runs, and understand Headquarters fleet views." },
       { route: "/docs/network", title: "Station Networks", description: "Scale execution across Headquarters and worker stations with placement, capacity, leases, and draining." },
       { route: "/docs/agent-skill", title: "Agent skill", description: "Install and use the Station coding-agent skill and its bundled API references." },
@@ -40,6 +41,7 @@ export const pageGroups = [
     heading: "Examples",
     pages: [
       { route: "/docs/examples", title: "Examples overview", description: "Index of complete examples arranged from first signal to distributed fleets." },
+      { route: "/docs/examples/browser", title: "Browser lab", description: "Run the local browser prototype, interrupt and recover work, exercise all three primitives, and run real-browser checks." },
       { route: "/docs/examples/basic", title: "Basic signal", description: "Minimal signal definition and trigger." },
       { route: "/docs/examples/with-output", title: "Typed output", description: "Declare and consume validated signal output." },
       { route: "/docs/examples/with-steps", title: "Signal steps", description: "Checkpoint multi-step work and inspect step progress." },

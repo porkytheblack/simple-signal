@@ -14,6 +14,12 @@ export default function GettingStartedPage() {
         observers.
       </p>
 
+      <p>
+        This page covers the Node runtime. For local execution inside a web app,
+        follow the <Link href="/docs/browser">experimental browser guide</Link>
+        {" "}instead: it uses BrowserStation and IndexedDB with explicit worker hosts.
+      </p>
+
       {/* ── Prerequisites ── */}
 
       <h3>Prerequisites</h3>

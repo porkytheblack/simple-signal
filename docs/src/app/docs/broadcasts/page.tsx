@@ -19,6 +19,13 @@ export default function BroadcastsPage() {
         the entire graph, handling fan-out, fan-in, conditional execution, and
         failure propagation.
       </p>
+      <p>
+        This reference describes the Node runtime. The shared builder also works
+        with the <Link href="/docs/browser">experimental browser runtime</Link>.
+        Read that guide for supported methods, explicit registration, IndexedDB
+        recovery, and cooperative worker execution; Node runner guarantees and
+        APIs do not apply in the browser.
+      </p>
 
       {/* ── broadcast(name) ── */}
 

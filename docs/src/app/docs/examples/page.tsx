@@ -7,6 +7,12 @@ export const metadata: Metadata = {
 
 const examples = [
   {
+    href: "/docs/examples/browser",
+    title: "Browser lab — Experimental",
+    desc: "Run signals, DAGs, and beacons on the device with IndexedDB recovery and worker execution.",
+    tags: ["browser", "workers", "IndexedDB"],
+  },
+  {
     href: "/docs/examples/basic",
     title: "01 — Basic",
     desc: "The simplest signal. Define it, trigger it, done.",
@@ -86,8 +92,8 @@ export default function ExamplesPage() {
       <div className="eyebrow">Showcase</div>
       <h2 style={{ marginTop: 0 }}>Examples</h2>
       <p>
-        Twelve guided examples from one signal to a multi-process Station
-        Network. Each links concepts to working source in the repository.
+        Guided examples from local browser workers and a single Node signal to a
+        multi-process Station Network. Each links concepts to working source in the repository.
       </p>
 
       <div className="examples-grid">

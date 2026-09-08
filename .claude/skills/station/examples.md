@@ -2,7 +2,11 @@
 
 Complete, copy-pasteable examples for the Station background job framework.
 
-> **How to run any of these: `station-kit`.** Signals, broadcasts, and beacons
+> **For browser-local examples, read [browser.md](browser.md).** Use the
+> explicit BrowserStation registry and worker hosts there; do not adapt Node
+> runner constructors or station.config.ts into a browser bundle.
+>
+> **How to run the Node examples below: `station-kit`.** Signals, broadcasts, and beacons
 > are just exported definitions in `signalsDir` / `broadcastsDir` /
 > `beaconsDir` — a `station.config.ts` calling `defineConfig` plus
 > `npx station` discovers and runs them, with the dashboard and v1 API included.
@@ -2332,6 +2336,23 @@ Operational requirements:
 - Test with at least two worker processes and the production adapter before
   deployment. Assert single ownership, placement, station/network concurrency,
   schedule deduplication, expired-lease recovery, and graceful shutdown.
+
+---
+
+## 27. Browser-local signals, broadcasts, and beacons
+
+Read [browser.md](browser.md) for a complete shared registry and page/worker
+setup. Run `pnpm dev:browser` from a checkout containing `station-browser` to
+try `examples/17-browser`. The example includes checkpoint recovery after worker
+termination, a branching DAG, a poll beacon, and a client that restarts after a
+simulated disconnect. Use `/tests.html` with other demo executors closed to check
+real IndexedDB and worker behavior. These checks also run in isolated Chromium through `pnpm test`; install the
+browser first with `pnpm test:browser:install`.
+
+Browser execution is cooperative and depends on browser wake opportunities.
+Service-worker beacons suspend between slices; closing a PWA does not preserve
+a live polling loop. Manual definitions can receive required config at `start()`; auto-start
+definitions without an existing instance need valid defaults.
 
 ---
 

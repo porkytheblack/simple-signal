@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "#station-crypto";
 import type { SignalQueueAdapter } from "./index.js";
 import type {
   ListAllRunsOptions,

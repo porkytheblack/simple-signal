@@ -1,0 +1,13 @@
+{
+  "name": "station-browser",
+  "version": "2.3.0",
+  "description": "Experimental browser runtime for Station signals, broadcasts, and supervised beacons",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist", "src"],
+  "scripts": { "build": "tsc", "typecheck": "tsc --noEmit" },
+  "dependencies": { "station-signal": "workspace:*", "station-broadcast": "workspace:*", "station-beacon": "workspace:*" }
+}

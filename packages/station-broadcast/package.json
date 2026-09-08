@@ -1,15 +1,24 @@
 {
   "name": "station-broadcast",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Workflow orchestration for station-signal — connect signals into DAGs",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./browser": { "types": "./dist/browser.d.ts", "default": "./dist/browser.js" },
     ".": {
       "types": "./dist/index.d.ts",
+      "browser": "./dist/browser.js",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    }
+  },
+  "imports": {
+    "#broadcast-crypto": {
+      "types": "./dist/browser-crypto.d.ts",
+      "browser": "./dist/browser-crypto.js",
+      "default": "crypto"
     }
   },
   "files": ["dist", "src"],

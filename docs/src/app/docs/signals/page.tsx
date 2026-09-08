@@ -17,6 +17,13 @@ export default function SignalsPage() {
         up, spawns an isolated child process, and manages retries, timeouts, and
         concurrency on your behalf.
       </p>
+      <p>
+        This reference describes the Node runtime. The shared builder also works
+        with the <Link href="/docs/browser">experimental browser runtime</Link>.
+        Read that guide for supported methods, explicit registration, IndexedDB
+        recovery, and cooperative worker execution; Node runner guarantees and
+        APIs do not apply in the browser.
+      </p>
 
       {/* ── signal(name) ── */}
 
