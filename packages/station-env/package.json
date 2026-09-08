@@ -1,6 +1,6 @@
 {
   "name": "station-env",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Runtime-editable environment variable store for station signals and beacons",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

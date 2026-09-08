@@ -2,12 +2,12 @@
 
 > Type-safe background jobs, recurring schedules, distributed Station Networks, long-running beacons, DAG workflows, and experimental browser execution for TypeScript.
 
-Station 2.2.1 is a modular TypeScript framework. StationKit is the Node application entry point. For browser-local work, use the experimental station-browser runtime with explicit registries and IndexedDB; it is not yet included in npm release automation. Browser workers use cooperative execution and cannot guarantee continuous work after a PWA closes. In the Node runtime, signals are isolated background jobs, broadcasts are DAG workflows, beacons are supervised long-running processes, schedules provide interval and timezone-aware cron execution, and Station Networks coordinate work across a Headquarters and worker stations. Prefer the Markdown links below when supplying documentation to an agent.
+Station 2.3.0 is a modular TypeScript framework. StationKit is the Node application entry point. For browser-local work, use the experimental station-browser runtime with explicit registries and IndexedDB; it is included in the Station 2.3.0 release. Browser workers use cooperative execution and cannot guarantee continuous work after a PWA closes. In the Node runtime, signals are isolated background jobs, broadcasts are DAG workflows, beacons are supervised long-running processes, schedules provide interval and timezone-aware cron execution, and Station Networks coordinate work across a Headquarters and worker stations. Prefer the Markdown links below when supplying documentation to an agent.
 
 ## Start here
 
 - [Getting started](https://station.dterminal.net/docs/getting-started.md): Install Station, define and run a signal, add persistence, and prepare a production configuration.
-- [Browser runtime (experimental)](https://station.dterminal.net/docs/browser.md): Build signals, DAGs, and beacons in Web Workers or service workers with IndexedDB, explicit wake handling, recovery, and browser execution limits. Includes the required-config beacon workaround.
+- [Browser runtime (experimental)](https://station.dterminal.net/docs/browser.md): Build signals, DAGs, and beacons in Web Workers or service workers with IndexedDB, explicit wake handling, recovery, and browser execution limits. Includes beacon configuration and start-mode behavior.
 - [Dashboard guide](https://station.dterminal.net/docs/dashboard.md): Operate the StationKit dashboard, inspect runs, and understand Headquarters fleet views.
 - [Station Networks](https://station.dterminal.net/docs/network.md): Scale execution across Headquarters and worker stations with placement, capacity, leases, and draining.
 - [Agent skill](https://station.dterminal.net/docs/agent-skill.md): Install and use the Station coding-agent skill and its bundled API references.

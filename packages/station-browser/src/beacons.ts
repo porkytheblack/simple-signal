@@ -83,9 +83,8 @@ export class BrowserBeacons {
     const def = this.definitions.get(name);
     if (!def) throw new Error(`Unknown browser beacon: ${name}`);
     const id = options.instanceId ?? name;
-    const config = JSON.stringify(def.configSchema.parse(options.config ?? def.defaultConfig ?? {}));
-    if (config === undefined) throw new Error("Beacon config must be JSON serializable");
-    return this.store.atomic(["beacons"], "readwrite", (tx, result) => {
+    let configError: unknown;
+    return this.store.atomic<string>(["beacons"], "readwrite", (tx, result) => {
       const records = tx.objectStore("beacons");
       const request = records.getAll();
       request.onsuccess = () => {
@@ -94,6 +93,19 @@ export class BrowserBeacons {
         // Errors must abort the transaction, not leave callers waiting on a thrown event callback.
         if (existing?.beaconName !== undefined && existing.beaconName !== name) { tx.abort(); return; }
         if (seed && existing) { result(id); return; }
+        let config: string;
+        try {
+          const encoded = JSON.stringify(def.configSchema.parse(options.config ?? def.defaultConfig ?? {}));
+          if (encoded === undefined) throw new Error("Beacon config must be JSON serializable");
+          config = encoded;
+        } catch (error) {
+          // A manual definition can wait for explicit configuration on start().
+          // Existing persisted instances above never revalidate unused defaults.
+          if (seed && !def.autoStart) { result(id); return; }
+          configError = error;
+          tx.abort();
+          return;
+        }
         if (!existing && all.filter((record) => record.beaconName === name).length >= (def.maxInstances ?? 8)) { tx.abort(); return; }
         // An active incarnation must be stopped before its configuration can be changed.
         if (existing?.token && (existing.leaseExpiresAt ?? 0) > Date.now()) { result(id); return; }
@@ -108,7 +120,7 @@ export class BrowserBeacons {
         record.token = undefined; record.leaseExpiresAt = undefined;
         records.put(record); result(id);
       };
-    });
+    }).catch((error) => { throw configError ?? error; });
   }
 
   async stop(id: string): Promise<void> {

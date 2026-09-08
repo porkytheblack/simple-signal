@@ -1,6 +1,6 @@
 {
   "name": "station-adapter-sqlite",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "SQLite adapter for station-signal using better-sqlite3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -2837,7 +2837,7 @@ the owning station endpoint directly for WebSockets.
 
 Use `BrowserStation`, not the Node runners above, for execution inside a web app.
 Read [browser.md](browser.md) for complete registry/page/worker examples, package
-availability, the required-config beacon workaround, and recovery constraints.
+availability, beacon configuration behavior, and recovery constraints.
 
 ```ts
 import {

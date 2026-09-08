@@ -2346,12 +2346,13 @@ setup. Run `pnpm dev:browser` from a checkout containing `station-browser` to
 try `examples/17-browser`. The example includes checkpoint recovery after worker
 termination, a branching DAG, a poll beacon, and a client that restarts after a
 simulated disconnect. Use `/tests.html` with other demo executors closed to check
-real IndexedDB and worker behavior. This suite is separate from `pnpm test`.
+real IndexedDB and worker behavior. These checks also run in isolated Chromium through `pnpm test`; install the
+browser first with `pnpm test:browser:install`.
 
 Browser execution is cooperative and depends on browser wake opportunities.
 Service-worker beacons suspend between slices; closing a PWA does not preserve
-a live polling loop. Required config without defaults needs the `onDemand()`
-workaround documented in the browser reference.
+a live polling loop. Manual definitions can receive required config at `start()`; auto-start
+definitions without an existing instance need valid defaults.
 
 ---
 

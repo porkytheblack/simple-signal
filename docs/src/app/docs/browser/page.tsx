@@ -28,9 +28,10 @@ export default function BrowserPage() {
 
       <h3>Try the implementation</h3>
       <p>
-        Start with the repository workspace. This package is not yet included in
-        the npm release script; do not assume the experimental API is available
-        in the published Station packages.
+        The experimental package is included in the Station 2.3.0 release.
+        After that release is published, install it in your application with
+        <code> pnpm add station-browser@^2.3.0</code>. To try the release checkout,
+        start with the repository workspace:
       </p>
       <Code>{`# From the Station repository checkout containing station-browser
 pnpm install
@@ -83,7 +84,7 @@ export const analysis = broadcast("analysis")
   .input(report).then(summarize)
   .onFailure("skip-downstream").build();
 
-// onDemand avoids seeding an instance before its required URL is supplied.
+// onDemand creates an instance only when explicitly requested.
 export const status = beacon("status")
   .config(z.object({ url: z.string() }))
   .onDemand().restart("on-failure")
@@ -226,7 +227,7 @@ setInterval(wake, 1_000);`}</Code>
         <li>Signals support input/output schemas, run handlers, saved steps, retries, and cooperative timeouts. Schedules, env injection, placement, per-signal concurrency policies, and onComplete hooks are rejected.</li>
         <li>Broadcasts support fan-out, joins, named dependencies, synchronous maps/guards, and fail-fast, skip-downstream, or continue policies. Recurring and dynamic-definition workflows are unsupported. Parent timeouts include time spent suspended.</li>
         <li>Beacons support run/poll, config, readiness, heartbeat/startup watchdogs, restart/backoff, and manual/auto/on-demand modes. Handlers must honor ctx.signal and release resources through onStop. Listening ports through ctx.expose(), env injection, and placement are unavailable.</li>
-        <li>Known config issue: startup seeds every non-on-demand beacon using defaults before checking existing records. Required fields without valid defaults can reject the entire supervisor tick. Use onDemand() and supply config on start(), or provide valid schema/default configuration for seeded definitions.</li>
+        <li>Manual beacons with required config can wait for an explicit start() with valid values. Existing instances retain saved configuration when a new supervisor starts. Auto-start definitions need valid defaults if no instance has been started yet; use schema defaults or withConfig(). Invalid explicit starts reject without creating an instance.</li>
       </ul>
 
       <h3>Recovery and production boundaries</h3>

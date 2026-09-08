@@ -6,10 +6,10 @@ The browser runtime is not a Station Network member and needs no companion app.
 
 ## Start from the workspace
 
-`station-browser` is not yet included in npm release automation. Work from a
-checkout containing the package; do not assume an npm install of the existing
-Station version includes it. Run `pnpm install` and `pnpm dev:browser` at the repo
-root, then open http://127.0.0.1:4317. For another app in this monorepo, declare
+`station-browser` is included in the Station 2.3.0 release. After it is published,
+install it with `pnpm add station-browser@^2.3.0`. To work from this release's
+checkout, run `pnpm install` and `pnpm dev:browser` at the repo root, then open
+http://127.0.0.1:4317. For another app in this monorepo, declare
 `station-browser: workspace:*` in dependencies.
 
 Bundle page and worker entries for the browser (for example with esbuild and
@@ -46,7 +46,7 @@ export const analysis = broadcast("analysis")
   .input(report).then(summarize)
   .onFailure("skip-downstream").build();
 
-// onDemand avoids seeding an instance before its required URL is supplied.
+// onDemand creates an instance only when explicitly requested.
 export const status = beacon("status")
   .config(z.object({ url: z.string() }))
   .onDemand().restart("on-failure")
@@ -210,15 +210,15 @@ cache code only with the application's own asset paths and cache namespace.
   `ctx.signal` and release resources. `ctx.expose()`, env, and placement are
   unavailable. Use run handlers for clients and poll handlers for repeated work.
 
-## Known config workaround
+## Beacon configuration
 
-Initial reconciliation seeds every non-on-demand definition using default
-config before checking whether an instance already exists. A required field
-without a default can reject the entire supervisor tick, even if `start()` was
-already called with valid config. Until fixed, use `.onDemand()` plus explicit
-config on `start()` for such definitions, as above. Manual/auto definitions need
-valid defaults (schema defaults or `.withConfig(...)`). Stop an active instance
-before changing its config. Do not present this issue as fixed.
+Manual definitions with required fields and no defaults wait for explicit
+configuration on `start()`. They do not block unrelated beacons during initial
+reconciliation. Existing persisted instances keep their configuration when a new
+supervisor starts. Auto-start definitions need valid defaults when there is no
+existing instance; use schema defaults or `.withConfig(...)`. `.onDemand()`
+creates instances only on explicit request. Invalid explicit starts reject
+without creating an instance. Stop an active instance before changing config.
 
 ## Recovery and lifetime rules
 
@@ -249,7 +249,9 @@ before changing its config. Do not present this issue as fixed.
 
 Run `pnpm --filter example-17-browser... build` and `pnpm typecheck`. Stop manual
 lab beacons and close other demo executors before navigating to `/tests.html`;
-its real-browser checks are separate from `pnpm test` and CI. Verify worker
+its real-browser checks also run automatically via `pnpm test` in an isolated
+headless Chromium context. Run `pnpm test:browser:install` once before local
+tests; `pnpm release` does this automatically. Verify worker
 termination/recovery, a failed DAG branch, explicit beacon stop across reload,
 and bounded service-worker slices. Do not infer cross-browser or closed-app
 support from an in-app browser test.

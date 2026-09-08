@@ -113,25 +113,38 @@ Teaches Claude how to build with every Station package. Covers signals, broadcas
 
 ## Releasing to npm
 
-All public packages use one version and can be validated, built, and published
-in dependency order with a single command:
+All 14 public packages, including experimental `station-browser`, share version
+2.3.0. Use Node.js 22 or later with the pinned pnpm version. With dependencies
+installed, a clean committed checkout, and npm publish access, run:
 
 ```bash
-pnpm release:npm
+pnpm release
 ```
 
-The command refuses a dirty worktree, verifies that every package has the same
-version and is not already on npm, runs the workspace typecheck and test suite,
-then builds and publishes each package sequentially. Preview the complete flow
-without uploading anything:
+The command checks package versions and availability, builds the entire workspace
+(including the docs and browser lab), runs typechecks and tests, then packs and
+validates every archive before publishing anything. Browser tests use headless
+Chromium; the preflight installs Playwright's matching browser if it is missing
+(the first run needs a download). Linux hosts need Chromium's system libraries;
+use `pnpm --filter example-17-browser exec playwright install --with-deps chromium`
+on a fresh CI machine.
+
+Preview the same release without uploads:
 
 ```bash
-pnpm release:npm:dry-run
+pnpm release --dry-run
 ```
 
-If npm fails after publishing only part of the package set, resume safely with
-`pnpm release:npm -- --resume`; exact versions already present on npm are
-skipped. Use `--tag next` to publish a prerelease dist-tag instead of `latest`.
+For local packaging QA on uncommitted work, add `--allow-dirty`; `--skip-checks`
+is also restricted to dry runs. Both flags are refused for live publishing.
+`release:npm`, `release:npm:dry-run`, and `release:dry-run` remain aliases.
+
+If npm fails after some uploads, run `pnpm release --resume`; exact package
+versions already present on npm are skipped, but dependencies are still rebuilt.
+Use `--tag next` for a prerelease dist-tag. Before a later release, bump every
+public package to the same unused version and commit the regenerated LLM index.
+Npm authentication/2FA requirements still apply. Publishing packages does not
+merge the PR or deploy the documentation site.
 
 ## License
 

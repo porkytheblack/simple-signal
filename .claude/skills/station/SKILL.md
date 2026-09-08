@@ -7,7 +7,7 @@ description: Build, scale, test, or operate TypeScript background work with Stat
 
 Choose the runtime first. For browser-local execution, read [browser.md](browser.md)
 and use `BrowserStation` from `station-browser` with explicit registries and
-IndexedDB. It is experimental and not yet in npm release automation. Do not
+IndexedDB. It is experimental and included in the Station 2.3.0 release. Do not
 create a Node server, native companion, or Station Network for browser-only work.
 Do not promise continuous polling after a PWA closes.
 
@@ -280,7 +280,7 @@ Measure the intended production adapter and workload before sizing a fleet.
 
 - Read [browser.md](browser.md) first for browser-local applications: shared
   registries, Web Worker/service-worker hosts, cooperative execution, API usage,
-  versioning, and required-config beacon workarounds.
+  versioning, and beacon configuration and start modes.
 - Read [api-reference.md](api-reference.md) for exact types, methods, adapters,
   v1 endpoints, and package exports. Station Networks are in §15.
 - Read [examples.md](examples.md) for complete applications and deployment

@@ -10,7 +10,7 @@ export const pageGroups = [
     heading: "Start here",
     pages: [
       { route: "/docs/getting-started", title: "Getting started", description: "Install Station, define and run a signal, add persistence, and prepare a production configuration." },
-      { route: "/docs/browser", title: "Browser runtime (experimental)", description: "Build signals, DAGs, and beacons in Web Workers or service workers with IndexedDB, explicit wake handling, recovery, and browser execution limits. Includes the required-config beacon workaround." },
+      { route: "/docs/browser", title: "Browser runtime (experimental)", description: "Build signals, DAGs, and beacons in Web Workers or service workers with IndexedDB, explicit wake handling, recovery, and browser execution limits. Includes beacon configuration and start-mode behavior." },
       { route: "/docs/dashboard", title: "Dashboard guide", description: "Operate the StationKit dashboard, inspect runs, and understand Headquarters fleet views." },
       { route: "/docs/network", title: "Station Networks", description: "Scale execution across Headquarters and worker stations with placement, capacity, leases, and draining." },
       { route: "/docs/agent-skill", title: "Agent skill", description: "Install and use the Station coding-agent skill and its bundled API references." },

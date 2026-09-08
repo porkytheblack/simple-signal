@@ -32,9 +32,10 @@ pnpm dev:browser
         to navigate to <code>/tests.html</code>. Close other demo tabs so their
         executors do not claim integration-test work. Checks use real IndexedDB,
         worker termination, service-worker execution, ownership fencing, DAG
-        recovery, and beacon lifecycle behavior. The suite is not part of
-        {" "}<code>pnpm test</code> or CI and does not certify all browsers or
-        execution after browser exit.
+        recovery, and beacon lifecycle behavior. The suite also runs in isolated headless Chromium through
+        {" "}<code>pnpm test</code>. Run <code>pnpm test:browser:install</code>
+        {" "}once before local testing; the release command installs it automatically.
+        These checks do not certify all browsers or execution after browser exit.
       </p>
       <h3>Files to adapt</h3>
       <table className="api-table">
@@ -51,7 +52,7 @@ pnpm dev:browser
         <a href="https://github.com/porkytheblack/station/tree/main/examples/17-browser">Browse the source</a>.
         The lab is experimental: it promises recoverable local state, not
         continuous polling after a PWA closes. Read the guide&apos;s configuration
-        workaround and storage/versioning limits before using custom definitions.
+        guidance and storage/versioning limits before using custom definitions.
       </p>
     </>
   );

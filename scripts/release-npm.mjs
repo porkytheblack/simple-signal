@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, mkdtempSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 
 const root = resolve(import.meta.dirname, "..");
@@ -17,6 +18,7 @@ const releaseOrder = [
   "station-schedules",
   "station-broadcast",
   "station-beacon",
+  "station-browser",
   "station-adapter-sqlite",
   "station-adapter-postgres",
   "station-adapter-mysql",
@@ -53,24 +55,25 @@ if (help) {
   console.log(`Publish every Station package to npm in dependency order.
 
 Usage:
-  pnpm release:npm
-  pnpm release:npm:dry-run
-  pnpm release:npm -- --resume
-  pnpm release:npm -- --tag next
+  pnpm release
+  pnpm release --dry-run
+  pnpm release --resume
+  pnpm release --tag next
+
+The release:npm and release:npm:dry-run scripts remain aliases.
 
 Options:
   --dry-run      Build and run npm publish dry-runs without uploading
   --resume       Skip exact package versions already present on npm
   --tag <tag>    Publish under an npm dist-tag (default: latest)
   --allow-dirty  Permit a dirty worktree (intended for local dry-run QA)
-  --skip-checks  Skip the workspace typecheck and test preflight
+  --skip-checks  Skip typecheck/tests for local dry-run packaging QA only
 `);
   process.exit(0);
 }
 
 function fail(message) {
-  console.error(`\n[release] ${message}`);
-  process.exit(1);
+  throw new Error(message);
 }
 
 function run(command, commandArgs, options = {}) {
@@ -103,7 +106,7 @@ function readPackage(name) {
   if (manifest.license !== "MIT") fail(`${name} must declare its MIT license before release.`);
   if (!existsSync(resolve(packageDir, "LICENSE"))) fail(`${name} is missing LICENSE.`);
   if (!existsSync(resolve(packageDir, "README.md"))) fail(`${name} is missing README.md.`);
-  return { name, version: manifest.version };
+  return { name, version: manifest.version, manifest };
 }
 
 function publishedVersion(name, version) {
@@ -118,59 +121,91 @@ function publishedVersion(name, version) {
   fail(`Could not determine whether ${name}@${version} is already published.`);
 }
 
-if (!allowDirty) {
-  const status = run("git", ["status", "--porcelain", "--untracked-files=normal"], { capture: true });
-  if (status.stdout.trim()) {
-    fail("The worktree is dirty. Commit the release first, or use --allow-dirty only for local dry-run QA.");
+function validateArchive(item, archive) {
+  const listing = run("tar", ["-tzf", archive], { capture: true });
+  const files = new Set(listing.stdout.trim().split("\n"));
+  const packed = JSON.parse(run("tar", ["-xOf", archive, "package/package.json"], { capture: true }).stdout);
+  if (packed.name !== item.name || packed.version !== item.version) fail(`Wrong manifest in ${archive}.`);
+  if (JSON.stringify(packed).includes("workspace:")) fail(`${item.name} still has workspace protocols in its packed manifest.`);
+  const paths = ["./LICENSE", "./README.md", packed.main, packed.types];
+  function collect(value) {
+    if (typeof value === "string" && value.startsWith("./")) paths.push(value);
+    else if (value && typeof value === "object") Object.values(value).forEach(collect);
+  }
+  collect(packed.exports);
+  collect(packed.imports);
+  collect(packed.bin);
+  for (const path of paths.filter(Boolean)) {
+    if (path.includes("*")) continue;
+    if (!files.has(`package/${path.replace(/^\.\//, "")}`)) fail(`${item.name} tarball is missing ${path}.`);
   }
 }
 
-if (!/^[a-z0-9][a-z0-9._-]*$/i.test(tag)) fail(`Invalid npm dist-tag: ${tag}`);
-
-const packages = releaseOrder.map(readPackage);
-const versions = new Set(packages.map((item) => item.version));
-if (versions.size !== 1) {
-  fail(`Every public Station package must share one version. Found: ${[...versions].join(", ")}`);
-}
-const version = packages[0].version;
-if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) fail(`Invalid release version: ${version}`);
-
-console.log(`[release] Station ${version} -> npm tag "${tag}"${dryRun ? " (dry run)" : ""}`);
-
-const alreadyPublished = new Set();
-for (const item of packages) {
-  const published = publishedVersion(item.name, item.version);
-  if (!published) {
-    console.log(`[release] available: ${item.name}@${item.version}`);
-    continue;
+function main() {
+  if ((allowDirty || skipChecks) && !dryRun) {
+    fail("--allow-dirty and --skip-checks are only supported with --dry-run.");
   }
-  if (!resume) {
-    fail(`${item.name}@${item.version} is already on npm. Bump every package version, or rerun with --resume after a partial release.`);
+  if (!allowDirty) {
+    const status = run("git", ["status", "--porcelain", "--untracked-files=normal"], { capture: true });
+    if (status.stdout.trim()) fail("The worktree is dirty. Commit the release first, or use --allow-dirty for a local dry run.");
   }
-  alreadyPublished.add(item.name);
-  console.log(`[release] resume: skipping ${item.name}@${item.version} (already published)`);
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(tag)) fail(`Invalid npm dist-tag: ${tag}`);
+
+  // A new public package must not silently disappear from a release.
+  for (const entry of readdirSync(resolve(root, "packages"), { withFileTypes: true })) {
+    const path = resolve(root, "packages", entry.name, "package.json");
+    if (!entry.isDirectory() || !existsSync(path)) continue;
+    const manifest = JSON.parse(readFileSync(path, "utf8"));
+    if (!manifest.private && !releaseOrder.includes(manifest.name)) fail(`Public package ${manifest.name} is missing from releaseOrder.`);
+  }
+  const packages = releaseOrder.map(readPackage);
+  const versions = new Set(packages.map((item) => item.version));
+  if (versions.size !== 1) fail(`Every public Station package must share one version. Found: ${[...versions].join(", ")}`);
+  const version = packages[0].version;
+  if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) fail(`Invalid release version: ${version}`);
+  for (const [index, item] of packages.entries()) {
+    const dependencies = { ...item.manifest.dependencies, ...item.manifest.peerDependencies };
+    for (const name of Object.keys(dependencies)) {
+      const position = releaseOrder.indexOf(name);
+      if (position >= index) fail(`${name} must be released before ${item.name}.`);
+    }
+  }
+  console.log(`[release] Station ${version} -> npm tag "${tag}"${dryRun ? " (dry run)" : ""}`);
+  const pending = packages.filter((item) => {
+    if (!publishedVersion(item.name, item.version)) return true;
+    if (!resume) fail(`${item.name}@${item.version} is already on npm. Bump every package version, or use --resume after a partial release.`);
+    console.log(`[release] resume: skipping ${item.name}@${item.version}`);
+    return false;
+  });
+  if (!pending.length) { console.log("[release] All versions are already published; nothing to do."); return; }
+  if (!dryRun) run("npm", ["whoami"]);
+
+  // Finish every build/check/archive before the first irreversible upload.
+  // Build all dependencies even on --resume so clean checkouts need no dist files.
+  run("pnpm", ["build"]);
+  if (!skipChecks) {
+    run("pnpm", ["typecheck"]);
+    run("pnpm", ["test:browser:install"]);
+    run("pnpm", ["test"]);
+  }
+  const staging = mkdtempSync(resolve(tmpdir(), "station-release-"));
+  try {
+    const archives = pending.map((item) => {
+      run("pnpm", ["--filter", item.name, "pack", "--pack-destination", staging]);
+      const path = resolve(staging, `${item.name}-${item.version}.tgz`);
+      if (!existsSync(path)) fail(`Missing packed archive: ${path}`);
+      validateArchive(item, path);
+      return path;
+    });
+    for (const archive of archives) {
+      run("npm", ["publish", archive, "--access", "public", "--tag", tag, "--dry-run"]);
+    }
+    if (!dryRun) {
+      for (const archive of archives) run("npm", ["publish", archive, "--access", "public", "--tag", tag]);
+    }
+  } finally { rmSync(staging, { recursive: true, force: true }); }
+  console.log(`\n[release] ${dryRun ? "Dry run complete" : "Published"}: Station ${version} (${pending.length} packages)`);
 }
 
-if (!dryRun) run("npm", ["whoami"]);
-
-if (!skipChecks) {
-  run("pnpm", ["typecheck"]);
-  run("pnpm", ["test"]);
-}
-
-for (const item of packages) {
-  if (alreadyPublished.has(item.name)) continue;
-  console.log(`\n[release] === ${item.name}@${item.version} ===`);
-  run("pnpm", ["--filter", item.name, "build"]);
-  const publishArgs = [
-    "--filter", item.name,
-    "publish",
-    "--access", "public",
-    "--tag", tag,
-    "--no-git-checks",
-  ];
-  if (dryRun) publishArgs.push("--dry-run");
-  run("pnpm", publishArgs);
-}
-
-console.log(`\n[release] ${dryRun ? "Dry run complete" : "Published"}: Station ${version}`);
+try { main(); }
+catch (error) { console.error(`\n[release] ${error.message}`); process.exitCode = 1; }

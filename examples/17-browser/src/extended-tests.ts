@@ -14,6 +14,44 @@ async function pump(station: BrowserStation, duration = 300) {
 }
 
 export async function extendedTests(test: Test) {
+  await test("Manual beacons wait for required config without blocking other beacons", () => isolated(async (database) => {
+    const received: string[] = [];
+    const manual = beacon("configured-manual").config(z.object({ tenant: z.string() }))
+      .manualStart().stopTimeout(100).run(async (ctx) => {
+        received.push(ctx.config.tenant); ctx.ready(); await ctx.untilStopped();
+      });
+    const healthy = beacon("healthy").stopTimeout(100).run(async (ctx) => { ctx.ready(); await ctx.untilStopped(); });
+    const station = new BrowserStation({ database, beacons: [manual, healthy] });
+    try {
+      await pump(station, 80);
+      assert((await station.beacons.list()).some((r) => r.beaconName === healthy.name && r.status === "running"), "Manual config blocked an unrelated beacon");
+      let rejected = false;
+      try { await station.beacons.start(manual.name, { config: { tenant: 42 } }); } catch { rejected = true; }
+      assert(rejected && received.length === 0, "Invalid explicit config was accepted");
+      await station.beacons.start(manual.name, { config: { tenant: "alpha" } });
+      await pump(station, 80);
+      assert(received.join() === "alpha", "Manual beacon did not receive explicit config");
+    } finally { await station.beacons.suspend(); await station.store.close(); }
+  }));
+
+  await test("Persisted beacon config survives a new supervisor with no valid defaults", () => isolated(async (database) => {
+    const received: string[] = [];
+    const definition = beacon("configured-auto").config(z.object({ tenant: z.string() }))
+      .stopTimeout(100).run(async (ctx) => { received.push(ctx.config.tenant); ctx.ready(); await ctx.untilStopped(); });
+    const a = new BrowserStation({ database, beacons: [definition] });
+    try {
+      await a.beacons.start(definition.name, { config: { tenant: "saved" } });
+      await a.beacons.runSlice(100);
+    } finally { await a.beacons.suspend(); await a.store.close(); }
+    const b = new BrowserStation({ database, beacons: [definition] });
+    try {
+      await b.beacons.runSlice(100);
+      const record = (await b.beacons.list())[0];
+      assert(received.join() === "saved,saved" && record.incarnation === 2, "Seeding rejected or replaced persisted config");
+      assert(record.status === "suspended", "Recovered instance did not suspend");
+    } finally { await b.beacons.suspend(); await b.store.close(); }
+  }));
+
   await test("Broadcast fan-out overlaps execution and fan-in receives both outputs", () => isolated(async (database) => {
     let active = 0; let peak = 0;
     const root = signal("root").input(z.object({})).output(z.number()).run(async () => 2);

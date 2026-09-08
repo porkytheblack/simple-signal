@@ -14,6 +14,9 @@ member or a replacement for the Node runners.
 
 ## Try it
 
+Included in the Station 2.3.0 release. After publication, install with
+`pnpm add station-browser@^2.3.0` and bundle for a browser target.
+
 From the repository root:
 
 ```sh
@@ -141,11 +144,11 @@ await station.beacons.stop("tenant-a");
 await station.beacons.suspend(); // host is shutting down; preserve desired-running state
 ```
 
-**Current config limitation:** initial reconciliation seeds non-on-demand
-definitions with defaults before checking existing instances. A required field
-without valid defaults can reject the entire supervisor tick, even after an
-explicit start with valid config. Use `.onDemand()` and pass config to `start()`
-for these definitions, or provide valid schema defaults / `.withConfig(...)`.
+Manual beacons with required config and no defaults wait for an explicit
+`start()` with valid values. They do not block other beacons. Existing persisted
+instances retain their config when a new supervisor starts. Auto-start
+definitions need valid defaults when no instance exists; use schema defaults
+or `.withConfig(...)`. Invalid explicit starts reject without creating a record.
 
 For a service worker, use `event.waitUntil(station.wake({ beaconSliceMs: 1500 }))`.
 `wake()` processes signals/broadcasts and runs a bounded beacon supervision slice
@@ -231,6 +234,10 @@ local stores; large queues and retention policies need further work. Beacon
 logs are bounded to 30 entries of 2,000 characters per instance.
 
 ## Validation
+
+`pnpm test:browser:install` installs the matching Chromium build. After building
+the workspace, `pnpm test` runs these checks in an isolated headless browser;
+`pnpm release` installs Chromium and runs the checks automatically.
 
 Run the demo, then open `/tests.html` with the demo page closed so another
 executor does not take the integration-test jobs. Tests use real browser

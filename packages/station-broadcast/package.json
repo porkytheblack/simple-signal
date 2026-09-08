@@ -1,6 +1,6 @@
 {
   "name": "station-broadcast",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Workflow orchestration for station-signal — connect signals into DAGs",
   "license": "MIT",
   "main": "dist/index.js",

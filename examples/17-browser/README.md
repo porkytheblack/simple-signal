@@ -27,6 +27,10 @@ Open http://127.0.0.1:4317.
 The delays in these sample handlers make interruption and checkpoints visible.
 They are demonstration workloads, not performance benchmarks.
 
+After building dependencies, run `pnpm test:browser:install` once, then
+`pnpm --filter example-17-browser test` for isolated headless Chromium checks.
+These checks are also part of `pnpm test` and the release preflight.
+
 Use the **Run browser checks** link for the real IndexedDB and worker test suite.
 Close other demo tabs while running it; the integration checks share the demo
 queue. Stop any manually started demo beacons first. The app caches its shell for offline reloads after the service worker is
