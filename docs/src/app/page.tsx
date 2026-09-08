@@ -166,7 +166,9 @@ export default function LandingPage() {
             Start as one TypeScript process with SQLite. Grow into a Station
             Network backed by PostgreSQL, MySQL, or Redis when you need more
             capacity. Retries, cron scheduling, workflows, long-running services,
-            and a fleet dashboard are included.
+            and a fleet dashboard are included. For work on the device, explore
+            the <Link href="/docs/browser">experimental browser runtime</Link>
+            {" "}with local signals, workflows, and beacons.
           </p>
           <div className="landing-hero-cta">
             <Link href="/docs/getting-started" className="btn-primary">

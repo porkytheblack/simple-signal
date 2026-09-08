@@ -3,6 +3,7 @@ export const sections = [
     label: "Guide",
     links: [
       { href: "/docs/getting-started", label: "Getting started" },
+      { href: "/docs/browser", label: "Browser runtime" },
       { href: "/docs/dashboard", label: "Dashboard" },
       { href: "/docs/remote-triggers", label: "Remote triggers" },
       { href: "/docs/dynamic-broadcasts", label: "Dynamic broadcasts" },
@@ -28,6 +29,7 @@ export const sections = [
     label: "Examples",
     links: [
       { href: "/docs/examples", label: "Overview" },
+      { href: "/docs/examples/browser", label: "Browser lab" },
       { href: "/docs/examples/basic", label: "Basic" },
       { href: "/docs/examples/with-output", label: "With Output" },
       { href: "/docs/examples/with-steps", label: "With Steps" },

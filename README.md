@@ -95,7 +95,11 @@ Run `pnpm dev:browser` to try signals, broadcast DAGs, and supervised beacons in
 Web Workers and service workers with IndexedDB persistence and recovery. See
 [`station-browser`](./packages/station-browser) and the
 [browser lab](./examples/17-browser). This experimental runtime runs local jobs;
-closed-page execution depends on browser wake events.
+closed-page execution depends on browser wake events. The
+[browser guide](https://station.dterminal.net/docs/browser) covers integration,
+and [the agent reference](.claude/skills/station/browser.md) provides worker
+patterns and the supported API. The docs build includes both browser guides in
+`llms.txt` and `llms-full.txt`.
 
 [station-docs](https://github.com/porkytheblack/station) — Getting started, API reference, examples.
 

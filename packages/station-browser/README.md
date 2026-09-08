@@ -141,6 +141,12 @@ await station.beacons.stop("tenant-a");
 await station.beacons.suspend(); // host is shutting down; preserve desired-running state
 ```
 
+**Current config limitation:** initial reconciliation seeds non-on-demand
+definitions with defaults before checking existing instances. A required field
+without valid defaults can reject the entire supervisor tick, even after an
+explicit start with valid config. Use `.onDemand()` and pass config to `start()`
+for these definitions, or provide valid schema defaults / `.withConfig(...)`.
+
 For a service worker, use `event.waitUntil(station.wake({ beaconSliceMs: 1500 }))`.
 `wake()` processes signals/broadcasts and runs a bounded beacon supervision slice
 concurrently. The slice ends by aborting handlers and running cleanup callbacks.

@@ -14,7 +14,7 @@ export default function AgentSkillPage() {
         Station ships with a Claude Code skill that teaches the AI assistant how
         to build with every Station package. Once installed, Claude knows how to
         create signals, broadcasts, beacons, schedules, Station Networks,
-        adapters, subscribers, and dashboard configs without you having to
+        adapters, subscribers, browser workers, and dashboard configs without you having to
         explain the API.
       </p>
 
@@ -39,7 +39,7 @@ export default function AgentSkillPage() {
       <Code>{`npx skills add porkytheblack/station`}</Code>
 
       <p>
-        The skill directory contains three files:
+        The skill directory includes these focused references:
       </p>
       <table className="api-table">
         <thead>
@@ -49,6 +49,10 @@ export default function AgentSkillPage() {
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><code>browser.md</code></td>
+            <td>BrowserStation setup, worker and service-worker hosting, API usage, supported definitions, recovery, and known limits. Read this first for browser-local work.</td>
+          </tr>
           <tr>
             <td><code>SKILL.md</code></td>
             <td>
@@ -68,7 +72,7 @@ export default function AgentSkillPage() {
           <tr>
             <td><code>examples.md</code></td>
             <td>
-              Twenty-six complete examples covering signals, pipelines, beacons,
+              Node examples and a linked browser walkthrough covering signals, pipelines, beacons,
               runtime schedules, environment variables, all four adapter
               backends, deployment, and a Headquarters/worker topology.
             </td>
@@ -92,6 +96,7 @@ export default function AgentSkillPage() {
       <ul>
         <li>&ldquo;Create a signal that sends welcome emails with retry&rdquo;</li>
         <li>&ldquo;Set up a broadcast DAG for my CI pipeline&rdquo;</li>
+        <li>&ldquo;Run a local workflow and a polling beacon in browser workers&rdquo;</li>
         <li>&ldquo;Configure PostgreSQL adapters for signals and broadcasts&rdquo;</li>
         <li>&ldquo;Scale this across a Headquarters and three GPU stations&rdquo;</li>
         <li>&ldquo;Add a runner with SQLite persistence and graceful shutdown&rdquo;</li>
@@ -111,6 +116,10 @@ export default function AgentSkillPage() {
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td>Browser runtime</td>
+            <td>Explicit registries, IndexedDB queues and checkpoints, worker drains, bounded service-worker wake slices, cooperative beacons, and configuration workarounds. See the <a href="/docs/browser">browser guide</a>.</td>
+          </tr>
           <tr>
             <td>Signals</td>
             <td>
@@ -197,6 +206,15 @@ export default function AgentSkillPage() {
       <hr className="divider" />
 
       {/* ── Updating ── */}
+
+      <h3>Documentation for other agents</h3>
+      <p>
+        Use <a href="/llms.txt">llms.txt</a> to find focused Markdown pages,
+        including <a href="/docs/browser.md">the browser guide</a> and
+        {" "}<a href="/docs/examples/browser.md">the lab walkthrough</a>.
+        <a href="/llms-full.txt"> The full reference</a> includes all generated
+        documentation. These files are rebuilt from the site pages.
+      </p>
 
       <h3>Updating</h3>
       <p>
