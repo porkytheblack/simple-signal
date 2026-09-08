@@ -28,6 +28,31 @@ function due(over: Partial<Schedule> = {}): Schedule {
   };
 }
 
+test("late polling preserves the planned occurrence without firing early or accumulating drift", async (t) => {
+  const now = Date.UTC(2026, 8, 8, 12);
+  t.mock.timers.enable({ apis: ["Date"], now });
+  const adapter = new ScheduleMemoryAdapter();
+  const scheduledFor = new Date(now + 250);
+  await adapter.add(due({ interval: "1h", nextRunAt: scheduledFor }));
+  const fired: Date[] = [];
+  const reconciler = new ScheduleReconciler({
+    adapter, kinds: ["signal"], parseInterval,
+    triggerFn: async (_schedule, occurrence) => { fired.push(occurrence); return "late-run"; },
+  });
+
+  await reconciler.tick();
+  assert.equal(fired.length, 0, "A future occurrence must not be eligible");
+  t.mock.timers.setTime(scheduledFor.getTime() + 1_020);
+  await reconciler.tick();
+  assert.deepEqual(fired, [scheduledFor], "Late polling must retain the original occurrence");
+  const updated = await adapter.get("s1");
+  assert.equal(updated?.lastRunId, "late-run");
+  assert.equal(updated?.lastRunStatus, "triggered");
+  assert.equal(updated?.nextRunAt.getTime(), scheduledFor.getTime() + 3_600_000);
+  await reconciler.tick();
+  assert.equal(fired.length, 1, "The same occurrence must not fire twice");
+});
+
 test("tick fires one schedule and records lastRunId / status / nextRunAt", async () => {
   const adapter = new ScheduleMemoryAdapter();
   await adapter.add(due());
